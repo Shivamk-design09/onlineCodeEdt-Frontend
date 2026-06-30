@@ -1,12 +1,20 @@
 import './App.css'
 import { Editor } from '@monaco-editor/react' // Monaco editor use karna ka component hai  // vscode jesa editor browser me hai
 import { MonacoBinding } from 'y-monaco' // connect yjs to monaco editor  //
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as Y from 'yjs'
 import { SocketIOProvider } from 'y-socket.io' // recived and send the changes with the server to show the users what are changed
 
 function App() {
   const editorRef = useRef(null)
+  const [username, setusername] = useState(() => {
+    return new URLSearchParams(window.location.search).get('username') || ''
+  }) // now make a function to get username form URL address
+
+  // const params = new URLSearchParams(window.location.search)
+  // useEffect(()=>{
+  //   setusername(params.get())
+  // },[params])
 
   // ydock is something where our code changes save and when user changes the code from Frontend it only change the new code add/removed and then server show this changes to other user also
   // ydoc = stores multiple files in form of key and value  in single object
@@ -19,26 +27,38 @@ function App() {
 
   const handleMount = (editor) => {
     editorRef.current = editor
+  }
 
-    // make the connection between in client and server -- ydoc connect to secket.io server
-    // make a provider to connect the frontend editor to with server
-    // so that frontend changes reaches to the server and it shows to other user also
-    const provider = new SocketIOProvider(
-      'http://localhost:3000',
-      'monaco',
-      ydoc,
-      { autoConnect: true },
-    )
 
-    // bridge between in monaco editr and yjs
-    // editor and Y.doc dono ko sync karta h
-    // user type in editor then y.doc gets updated, hence Y.doc get updated then editor also get updated
-    // monacobinding me jo type hota h use yjs document me sync karta h
-    const monacoBinding = new MonacoBinding(
-      yText,
-      editorRef.current.getModel(), // monaco editor ka model
-      new Set([editorRef.current]),
-      provider.awareness,
+  // we are making a function to handle users
+  // on submit this handler will run
+  const handleJoin = (e) => {
+    e.preventDefault()
+    setusername(e.target.username.value)
+
+    window.history.pushState({}, '', '?username=' + e.target.username.value) // method lets you add a new browser history wihtuot reloading the page
+  }
+
+  useEffect(() => {
+    if (username && editorRef.current) {
+    }
+  }, [username, editorRef.current])
+
+  if (!username) {
+    return (
+      <main className="bg-gray-950 w-[100%] flex h-screen gap-1 p-2 items-center justify-center">
+        <form onSubmit={handleJoin}>
+          <input
+            type="text"
+            placeholder="Enter your name"
+            className="p-2 rounded-lg bg-gray-500 text-white"
+            name="username" // the name attribute addentifed as a unique idenfier for your data
+          />
+          <button className="p-2 w-20 rounded-lg bg-amber-500 text-gray-200 m-2">
+            join
+          </button>
+        </form>
+      </main>
     )
   }
 
